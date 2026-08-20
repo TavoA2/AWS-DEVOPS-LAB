@@ -1,20 +1,23 @@
-# Terraform working directory
-.terraform/
-
 # Terraform state
 *.tfstate
 *.tfstate.*
 
-# Variables potentially containing secrets
+# Terraform working directory
+.terraform/
+
+# Terraform plans
+tfplan
+*.tfplan
+
+# Terraform variable files that may contain secrets
 *.tfvars
 *.tfvars.json
 
-# Logs
-crash.log
-crash.*.log
-
 # Environment / secrets
 .env
-.env.*
 *.pem
 *.key
+
+# Crash logs
+crash.log
+crash.*.log
