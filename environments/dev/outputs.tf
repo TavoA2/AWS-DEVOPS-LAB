@@ -67,3 +67,18 @@ output "high_cpu_alarm_name" {
   description = "Development high CPU alarm"
   value       = module.monitoring.high_cpu_alarm_name
 }
+
+output "application_health_alarm_name" {
+  description = "Development application health alarm"
+  value       = module.monitoring.application_health_alarm_name
+}
+
+output "nginx_access_log_group_name" {
+  description = "Nginx access CloudWatch Log Group"
+  value       = module.monitoring.nginx_access_log_group_name
+}
+
+output "nginx_error_log_group_name" {
+  description = "Nginx error CloudWatch Log Group"
+  value       = module.monitoring.nginx_error_log_group_name
+}

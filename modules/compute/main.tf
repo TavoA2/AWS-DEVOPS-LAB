@@ -86,3 +86,53 @@ resource "aws_instance" "lab" {
     Project     = "aws-devops-lab"
   }
 }
+
+resource "aws_iam_role_policy" "cloudwatch_metrics" {
+  name = "${var.environment}-ec2-cloudwatch-metrics"
+  role = aws_iam_role.ec2_ssm.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "cloudwatch:PutMetricData"
+        ]
+
+        Resource = "*"
+
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "AWSDevOpsLab"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "cloudwatch_logs" {
+  name = "${var.environment}-ec2-cloudwatch-logs"
+  role = aws_iam_role.ec2_ssm.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+
+        Resource = "arn:aws:logs:*:*:log-group:/aws/ec2/${var.environment}/nginx/*"
+      }
+    ]
+  })
+}
