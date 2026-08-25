@@ -3,7 +3,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -146,17 +146,6 @@ resource "aws_security_group" "web" {
     ManagedBy   = "terraform"
     Project     = "aws-devops-lab"
   }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "web_http" {
-  security_group_id = aws_security_group.web.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 80
-  to_port     = 80
-  ip_protocol = "tcp"
-
-  description = "Allow HTTP from Internet"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "web_https" {

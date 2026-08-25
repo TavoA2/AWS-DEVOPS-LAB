@@ -12,3 +12,13 @@ output "public_ip" {
   description = "Public IP address"
   value       = aws_instance.lab.public_ip
 }
+
+output "ami_id" {
+  description = "AMI used by compute"
+  value       = data.aws_ami.amazon_linux.id
+}
+
+output "iam_instance_profile_name" {
+  description = "EC2 IAM instance profile name"
+  value       = aws_iam_instance_profile.ec2_ssm.name
+}

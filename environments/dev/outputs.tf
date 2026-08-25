@@ -82,3 +82,23 @@ output "nginx_error_log_group_name" {
   description = "Nginx error CloudWatch Log Group"
   value       = module.monitoring.nginx_error_log_group_name
 }
+
+output "alb_dns_name" {
+  description = "Development ALB DNS name"
+  value       = module.loadbalancing.alb_dns_name
+}
+
+output "target_group_arn" {
+  description = "Development target group ARN"
+  value       = module.loadbalancing.target_group_arn
+}
+
+output "autoscaling_group_name" {
+  description = "Development Auto Scaling Group"
+  value       = module.autoscaling.autoscaling_group_name
+}
+
+output "launch_template_id" {
+  description = "Development Launch Template ID"
+  value       = module.autoscaling.launch_template_id
+}

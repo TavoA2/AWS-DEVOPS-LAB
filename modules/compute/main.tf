@@ -63,7 +63,7 @@ resource "aws_instance" "lab" {
 
   associate_public_ip_address = true
 
-  user_data = file("${path.module}/user_data.sh")
+  user_data                   = file("${path.module}/user_data.sh")
   user_data_replace_on_change = true
 
   root_block_device {
