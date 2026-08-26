@@ -50,6 +50,8 @@ resource "aws_autoscaling_group" "web" {
   desired_capacity = 2
   max_size         = 3
 
+  default_cooldown = 180
+
   vpc_zone_identifier = var.subnet_ids
 
   target_group_arns = [
@@ -80,5 +82,19 @@ resource "aws_autoscaling_group" "web" {
     key                 = "ManagedBy"
     value               = "terraform"
     propagate_at_launch = true
+  }
+}
+
+resource "aws_autoscaling_policy" "cpu_target_tracking" {
+  name                   = "${var.environment}-web-cpu-target"
+  autoscaling_group_name = aws_autoscaling_group.web.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 50.0
   }
 }

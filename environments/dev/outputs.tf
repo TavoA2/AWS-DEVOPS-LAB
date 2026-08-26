@@ -102,3 +102,8 @@ output "launch_template_id" {
   description = "Development Launch Template ID"
   value       = module.autoscaling.launch_template_id
 }
+
+output "scaling_policy_name" {
+  description = "Auto Scaling CPU target tracking policy"
+  value       = module.autoscaling.scaling_policy_name
+}
