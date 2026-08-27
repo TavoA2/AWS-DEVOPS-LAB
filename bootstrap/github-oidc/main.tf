@@ -28,7 +28,10 @@ resource "aws_iam_role" "github_actions" {
           }
 
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_owner}/${var.github_repository}:*"
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:${var.github_owner}/${var.github_repository}:pull_request",
+              "repo:${var.github_owner}/${var.github_repository}:ref:refs/heads/main"
+            ]
           }
         }
       }
