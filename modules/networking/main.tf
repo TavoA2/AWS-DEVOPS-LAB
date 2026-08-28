@@ -170,15 +170,6 @@ resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
   description = "Allow HTTPS outbound traffic"
 }
 
-/*resource "aws_vpc_security_group_egress_rule" "web_all_outbound" {
-  security_group_id = aws_security_group.web.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "-1"
-
-  description = "Allow all outbound traffic"
-}*/
-
 resource "aws_security_group" "app" {
   name        = "${var.environment}-app-sg"
   description = "Security group for application layer"
