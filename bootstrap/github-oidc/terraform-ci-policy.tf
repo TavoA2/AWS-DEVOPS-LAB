@@ -83,7 +83,8 @@ resource "aws_iam_policy" "github_actions_terraform" {
           "cloudwatch:DescribeAlarms",
           "cloudwatch:GetMetricData",
           "cloudwatch:GetMetricStatistics",
-          "cloudwatch:ListMetrics"
+          "cloudwatch:ListMetrics",
+          "cloudwatch:ListTagsForResource"
         ]
 
         Resource = "*"
