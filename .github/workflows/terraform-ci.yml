@@ -67,5 +67,14 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      - name: Trivy Terraform Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: table
+
       - name: Terraform Plan
         run: terraform plan -no-color
