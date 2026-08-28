@@ -93,7 +93,8 @@ resource "aws_iam_policy" "github_actions_terraform" {
 
         Action = [
           "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams"
+          "logs:DescribeLogStreams",
+          "logs:ListTagsForResource"
         ]
 
         Resource = "*"
