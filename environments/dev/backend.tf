@@ -4,8 +4,6 @@ terraform {
     key          = "environments/dev/terraform.tfstate"
     region       = "us-east-1"
 
-    profile      = "terraform-lab"
-
     use_lockfile = true
     encrypt      = true
   }
