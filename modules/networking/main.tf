@@ -148,7 +148,7 @@ resource "aws_security_group" "web" {
   }
 }
 
-/*resource "aws_vpc_security_group_ingress_rule" "web_https" {
+resource "aws_vpc_security_group_ingress_rule" "web_https" {
   security_group_id = aws_security_group.web.id
 
   cidr_ipv4   = "0.0.0.0/0"
@@ -157,7 +157,7 @@ resource "aws_security_group" "web" {
   ip_protocol = "tcp"
 
   description = "Allow HTTPS from Internet"
-}NOTA: Se reemplaza por el resource de abajo*/
+}
 
 resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
   security_group_id = aws_security_group.web.id
@@ -170,14 +170,14 @@ resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
   description = "Allow HTTPS outbound traffic"
 }
 
-resource "aws_vpc_security_group_egress_rule" "web_all_outbound" {
+/*resource "aws_vpc_security_group_egress_rule" "web_all_outbound" {
   security_group_id = aws_security_group.web.id
 
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 
   description = "Allow all outbound traffic"
-}
+}*/
 
 resource "aws_security_group" "app" {
   name        = "${var.environment}-app-sg"
