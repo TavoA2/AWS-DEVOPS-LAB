@@ -1,0 +1,37 @@
+[1mdiff --git a/environments/dev/backend.tf b/environments/dev/backend.tf[m
+[1mindex 74e43e4..cd70162 100644[m
+[1m--- a/environments/dev/backend.tf[m
+[1m+++ b/environments/dev/backend.tf[m
+[36m@@ -1,8 +1,8 @@[m
+ terraform {[m
+   backend "s3" {[m
+[31m-    bucket       = "tavoa2-aws-devops-lab-tfstate"[m
+[31m-    key          = "environments/dev/terraform.tfstate"[m
+[31m-    region       = "us-east-1"[m
+[32m+[m[32m    bucket = "tavoa2-aws-devops-lab-tfstate"[m
+[32m+[m[32m    key    = "environments/dev/terraform.tfstate"[m
+[32m+[m[32m    region = "us-east-1"[m
+ [m
+     use_lockfile = true[m
+     encrypt      = true[m
+[1mdiff --git a/modules/autoscaling/main.tf b/modules/autoscaling/main.tf[m
+[1mindex 1174305..98380d1 100644[m
+[1m--- a/modules/autoscaling/main.tf[m
+[1m+++ b/modules/autoscaling/main.tf[m
+[36m@@ -3,11 +3,11 @@[m [mresource "aws_launch_template" "web" {[m
+   image_id      = var.ami_id[m
+   instance_type = var.instance_type[m
+ [m
+[31m-network_interfaces {[m
+[31m-  associate_public_ip_address = true[m
+[31m-  security_groups             = [var.security_group_id][m
+[31m-  device_index                = 0[m
+[31m-}[m
+[32m+[m[32m  network_interfaces {[m
+[32m+[m[32m    associate_public_ip_address = true[m
+[32m+[m[32m    security_groups             = [var.security_group_id][m
+[32m+[m[32m    device_index                = 0[m
+[32m+[m[32m  }[m
+ [m
+   iam_instance_profile {[m
+     name = var.iam_instance_profile_name[m

@@ -3,11 +3,11 @@ resource "aws_launch_template" "web" {
   image_id      = var.ami_id
   instance_type = var.instance_type
 
-network_interfaces {
-  associate_public_ip_address = true
-  security_groups             = [var.security_group_id]
-  device_index                = 0
-}
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [var.security_group_id]
+    device_index                = 0
+  }
 
   iam_instance_profile {
     name = var.iam_instance_profile_name
