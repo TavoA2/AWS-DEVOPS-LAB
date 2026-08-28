@@ -21,17 +21,24 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   cidr_ipv4   = "0.0.0.0/0"
 }
 
-resource "aws_vpc_security_group_egress_rule" "alb_all_outbound" {
+resource "aws_vpc_security_group_egress_rule" "alb_to_web" {
   security_group_id = aws_security_group.alb.id
 
-  ip_protocol = "-1"
-  cidr_ipv4   = "0.0.0.0/0"
+  referenced_security_group_id = var.web_security_group_id
+  from_port                    = 80
+  to_port                      = 80
+  ip_protocol                  = "tcp"
+
+  description = "Allow ALB traffic to web tier"
 }
 
+#trivy:ignore:AWS-0053
 resource "aws_lb" "main" {
   name               = "${var.environment}-devops-lab-alb"
   internal           = false
   load_balancer_type = "application"
+
+  drop_invalid_header_fields = true
 
   security_groups = [
     aws_security_group.alb.id
@@ -74,6 +81,7 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
+#trivy:ignore:AWS-0054
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80

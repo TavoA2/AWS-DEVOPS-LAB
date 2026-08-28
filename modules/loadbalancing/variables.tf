@@ -14,6 +14,6 @@ variable "public_subnet_ids" {
 }
 
 variable "web_security_group_id" {
-  description = "Security group ID attached to the web EC2 instance"
+  description = "Security group ID for the web tier"
   type        = string
 }

@@ -40,7 +40,7 @@ output "private_route_table_id" {
 }
 
 output "web_security_group_id" {
-  description = "Web security group ID"
+  description = "Security group ID for the web tier"
   value       = aws_security_group.web.id
 }
 
@@ -53,3 +53,5 @@ output "db_security_group_id" {
   description = "Database security group ID"
   value       = aws_security_group.db.id
 }
+
+
