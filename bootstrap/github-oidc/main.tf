@@ -29,8 +29,8 @@ resource "aws_iam_role" "github_actions" {
 
           StringLike = {
             "token.actions.githubusercontent.com:sub" = [
-              "repo:TavoA2@12345678/AWS-DEVOPS-LAB@87654321:pull_request",
-              "repo:TavoA2@12345678/AWS-DEVOPS-LAB@87654321:ref:refs/heads/main"
+              "repo:TavoA2@115035743/AWS-DEVOPS-LAB@1340893898:pull_request",
+              "repo:TavoA2@115035743/AWS-DEVOPS-LAB@1340893898:ref:refs/heads/main"
             ]
           }
         }
