@@ -1,12 +1,3 @@
-#trivy:ignore:AWS-0053
-resource "aws_lb" "main" {
-  name               = "${var.environment}-devops-lab-alb"
-  internal           = false
-  load_balancer_type = "application"
-
-  # ...
-}
-
 resource "aws_security_group" "alb" {
   name        = "${var.environment}-alb-sg"
   description = "Security group for Application Load Balancer"
@@ -41,6 +32,7 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_web" {
   description = "Allow ALB traffic to web tier"
 }
 
+#trivy:ignore:AWS-0053
 resource "aws_lb" "main" {
   name               = "${var.environment}-devops-lab-alb"
   internal           = false
