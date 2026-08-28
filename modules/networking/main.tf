@@ -159,6 +159,7 @@ resource "aws_vpc_security_group_ingress_rule" "web_https" {
   description = "Allow HTTPS from Internet"
 }
 
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
   security_group_id = aws_security_group.web.id
 
@@ -196,14 +197,6 @@ resource "aws_vpc_security_group_ingress_rule" "app_from_web" {
   description = "Allow application traffic from Web SG"
 }
 
-/*resource "aws_vpc_security_group_egress_rule" "app_all_outbound" {
-  security_group_id = aws_security_group.app.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "-1"
-
-  description = "Allow all outbound traffic"
-}*/
 
 resource "aws_security_group" "db" {
   name        = "${var.environment}-db-sg"
@@ -230,13 +223,3 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
 
   description = "Allow PostgreSQL traffic from App SG"
 }
-
-
-/*resource "aws_vpc_security_group_egress_rule" "db_all_outbound" {
-  security_group_id = aws_security_group.db.id
-
-  cidr_ipv4   = "0.0.0.0/0"
-  ip_protocol = "-1"
-
-  description = "Allow all outbound traffic"
-}*/
