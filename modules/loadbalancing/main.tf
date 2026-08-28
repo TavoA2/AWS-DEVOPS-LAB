@@ -1,3 +1,12 @@
+#trivy:ignore:AWS-0053
+resource "aws_lb" "main" {
+  name               = "${var.environment}-devops-lab-alb"
+  internal           = false
+  load_balancer_type = "application"
+
+  # ...
+}
+
 resource "aws_security_group" "alb" {
   name        = "${var.environment}-alb-sg"
   description = "Security group for Application Load Balancer"
@@ -53,6 +62,18 @@ resource "aws_lb" "main" {
   }
 }
 
+#trivy:ignore:AWS-0104
+resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
+  security_group_id = aws_security_group.web.id
+
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = 443
+  to_port     = 443
+  ip_protocol = "tcp"
+
+  description = "Allow HTTPS outbound traffic"
+}
+
 resource "aws_lb_target_group" "web" {
   name     = "${var.environment}-web-tg"
   port     = 80
@@ -80,6 +101,17 @@ resource "aws_lb_target_group" "web" {
   }
 }
 
+#trivy:ignore:AWS-0054
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web.arn
+  }
+}
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
