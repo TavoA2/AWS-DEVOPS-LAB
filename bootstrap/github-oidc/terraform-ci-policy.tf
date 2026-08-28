@@ -64,6 +64,7 @@ resource "aws_iam_policy" "github_actions_terraform" {
         Action = [
           "iam:GetRole",
           "iam:GetPolicy",
+          "iam:GetRolePolicy",
           "iam:GetPolicyVersion",
           "iam:ListAttachedRolePolicies",
           "iam:ListRolePolicies",
