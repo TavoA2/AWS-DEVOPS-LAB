@@ -51,3 +51,9 @@ module "autoscaling" {
 
   user_data_path = "${path.root}/../../modules/compute/user_data.sh"
 }
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  environment = var.environment
+}
