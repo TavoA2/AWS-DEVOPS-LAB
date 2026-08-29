@@ -101,6 +101,40 @@ resource "aws_iam_policy" "github_actions_terraform" {
         ]
 
         Resource = "*"
+      },
+      {
+        Sid    = "ECRReadAccess"
+        Effect = "Allow"
+        Action = [
+          "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
+          "ecr:ListImages",
+          "ecr:GetRepositoryPolicy",
+          "ecr:ListTagsForResource"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ECRAuthorization"
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ECRPushAccess"
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
+        ]
+        Resource = "arn:aws:ecr:us-east-1:200015573044:repository/dev-aws-devops-lab-web"
       }
     ]
   })
