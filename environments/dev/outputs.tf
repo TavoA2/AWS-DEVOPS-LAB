@@ -107,3 +107,7 @@ output "scaling_policy_name" {
   description = "Auto Scaling CPU target tracking policy"
   value       = module.autoscaling.scaling_policy_name
 }
+
+output "ecr_repository_url" {
+  value = module.ecr.repository_url
+}
