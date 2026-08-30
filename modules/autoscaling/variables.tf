@@ -34,7 +34,17 @@ variable "target_group_arn" {
   type        = string
 }
 
-variable "user_data_path" {
-  description = "Path to user data script"
+variable "aws_region" {
+  description = "AWS region used to authenticate with ECR"
+  type        = string
+}
+
+variable "ecr_registry" {
+  description = "Amazon ECR registry hostname"
+  type        = string
+}
+
+variable "container_image" {
+  description = "Full ECR image URI including immutable tag"
   type        = string
 }

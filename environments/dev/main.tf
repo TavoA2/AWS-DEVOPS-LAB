@@ -10,6 +10,8 @@ module "compute" {
 
   environment = var.environment
 
+  ecr_repository_arn = module.ecr.repository_arn
+
   subnet_id         = module.networking.public_subnet_ids[0]
   security_group_id = module.networking.web_security_group_id
 
@@ -49,7 +51,10 @@ module "autoscaling" {
 
   target_group_arn = module.loadbalancing.target_group_arn
 
-  user_data_path = "${path.root}/../../modules/compute/user_data.sh"
+  aws_region      = var.aws_region
+  ecr_registry    = "200015573044.dkr.ecr.us-east-1.amazonaws.com"
+  container_image = "200015573044.dkr.ecr.us-east-1.amazonaws.com/dev-aws-devops-lab-web:33e9b7793da0ad1711ead9f92832fa9781a6a9dc"
+
 }
 
 module "ecr" {
