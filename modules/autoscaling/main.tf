@@ -13,7 +13,12 @@ resource "aws_launch_template" "web" {
     name = var.iam_instance_profile_name
   }
 
-  user_data = base64encode(file(var.user_data_path))
+  user_data = base64encode(templatefile("${path.module}/user_data.sh.tftpl", {
+    aws_region      = var.aws_region
+    ecr_registry    = var.ecr_registry
+    container_image = var.container_image
+  }))
+
 
   metadata_options {
     http_endpoint = "enabled"

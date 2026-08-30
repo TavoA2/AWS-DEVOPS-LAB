@@ -18,3 +18,8 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "ecr_repository_arn" {
+  description = "ARN of the ECR repository that EC2 instances can pull images from"
+  type        = string
+}
