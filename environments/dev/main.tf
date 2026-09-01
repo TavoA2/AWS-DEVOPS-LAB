@@ -12,10 +12,13 @@ module "compute" {
 
   ecr_repository_arn = module.ecr.repository_arn
 
+
   subnet_id         = module.networking.public_subnet_ids[0]
   security_group_id = module.networking.web_security_group_id
 
   instance_type = "t3.micro"
+
+  ami_id = var.ami_id
 }
 
 module "monitoring" {
@@ -40,7 +43,8 @@ module "autoscaling" {
 
   environment = var.environment
 
-  ami_id        = module.compute.ami_id
+  ami_id = var.ami_id
+
   instance_type = "t3.micro"
 
   subnet_ids = module.networking.public_subnet_ids
@@ -52,9 +56,8 @@ module "autoscaling" {
   target_group_arn = module.loadbalancing.target_group_arn
 
   aws_region      = var.aws_region
-  ecr_registry    = "200015573044.dkr.ecr.us-east-1.amazonaws.com"
-  container_image = "200015573044.dkr.ecr.us-east-1.amazonaws.com/dev-aws-devops-lab-web:33e9b7793da0ad1711ead9f92832fa9781a6a9dc"
-
+  ecr_registry    = split("/", module.ecr.repository_url)[0]
+  container_image = "${module.ecr.repository_url}:${var.container_image_tag}"
 }
 
 module "ecr" {
