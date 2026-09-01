@@ -1,0 +1,48 @@
+[1mdiff --git a/modules/autoscaling/main.tf b/modules/autoscaling/main.tf[m
+[1mindex ca8db94..7d2587b 100644[m
+[1m--- a/modules/autoscaling/main.tf[m
+[1m+++ b/modules/autoscaling/main.tf[m
+[36m@@ -13,11 +13,15 @@[m [mresource "aws_launch_template" "web" {[m
+     name = var.iam_instance_profile_name[m
+   }[m
+ [m
+[31m-  user_data = base64encode(templatefile("${path.module}/user_data.sh.tftpl", {[m
+[31m-    aws_region      = var.aws_region[m
+[31m-    ecr_registry    = var.ecr_registry[m
+[31m-    container_image = var.container_image[m
+[31m-  }))[m
+[32m+[m[32m  user_data = base64encode(replace([m
+[32m+[m[32m    templatefile("${path.module}/user_data.sh.tftpl", {[m
+[32m+[m[32m      aws_region      = var.aws_region[m
+[32m+[m[32m      ecr_registry    = var.ecr_registry[m
+[32m+[m[32m      container_image = var.container_image[m
+[32m+[m[32m    }),[m
+[32m+[m[32m    "\r\n",[m
+[32m+[m[32m    "\n"[m
+[32m+[m[32m  ))[m
+ [m
+ [m
+   metadata_options {[m
+[36m@@ -88,6 +92,15 @@[m [mresource "aws_autoscaling_group" "web" {[m
+     value               = "terraform"[m
+     propagate_at_launch = true[m
+   }[m
+[32m+[m
+[32m+[m[32m  instance_refresh {[m
+[32m+[m[32m    strategy = "Rolling"[m
+[32m+[m
+[32m+[m[32m    preferences {[m
+[32m+[m[32m      min_healthy_percentage = 50[m
+[32m+[m[32m      instance_warmup        = 180[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+ }[m
+ [m
+ resource "aws_autoscaling_policy" "cpu_target_tracking" {[m
+[36m@@ -102,4 +115,4 @@[m [mresource "aws_autoscaling_policy" "cpu_target_tracking" {[m
+ [m
+     target_value = 50.0[m
+   }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
