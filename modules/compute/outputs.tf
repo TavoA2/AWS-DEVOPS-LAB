@@ -15,7 +15,7 @@ output "public_ip" {
 
 output "ami_id" {
   description = "AMI used by compute"
-  value       = data.aws_ami.amazon_linux.id
+  value       = var.ami_id
 }
 
 output "iam_instance_profile_name" {

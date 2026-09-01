@@ -23,3 +23,8 @@ variable "ecr_repository_arn" {
   description = "ARN of the ECR repository that EC2 instances can pull images from"
   type        = string
 }
+
+variable "ami_id" {
+  description = "AMI ID used by EC2 instances"
+  type        = string
+}
