@@ -13,11 +13,15 @@ resource "aws_launch_template" "web" {
     name = var.iam_instance_profile_name
   }
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh.tftpl", {
-    aws_region      = var.aws_region
-    ecr_registry    = var.ecr_registry
-    container_image = var.container_image
-  }))
+  user_data = base64encode(replace(
+    templatefile("${path.module}/user_data.sh.tftpl", {
+      aws_region      = var.aws_region
+      ecr_registry    = var.ecr_registry
+      container_image = var.container_image
+    }),
+    "\r\n",
+    "\n"
+  ))
 
 
   metadata_options {
@@ -87,6 +91,15 @@ resource "aws_autoscaling_group" "web" {
     key                 = "ManagedBy"
     value               = "terraform"
     propagate_at_launch = true
+  }
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 180
+    }
   }
 }
 
