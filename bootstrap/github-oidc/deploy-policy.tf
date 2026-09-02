@@ -143,6 +143,35 @@ resource "aws_iam_policy" "github_actions_deploy" {
         ]
 
         Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ec2:CreateLaunchTemplateVersion",
+          "ec2:ModifyLaunchTemplate",
+          "ec2:RunInstances",
+          "ec2:CreateTags"
+        ]
+
+        Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "iam:PassRole"
+        ]
+
+        Resource = "arn:aws:iam::200015573044:role/dev-ec2-ssm-role"
+
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ec2.amazonaws.com"
+          }
+        }
       }
     ]
   })
