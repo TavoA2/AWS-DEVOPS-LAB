@@ -90,3 +90,105 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: environments/dev
         run: terraform apply -auto-approve tfplan
+
+      - name: Wait for ASG instance refresh
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASG_NAME="dev-web-asg"
+
+          REFRESH_ID=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --query 'InstanceRefreshes[0].InstanceRefreshId' \
+            --output text)
+
+          echo "Waiting for instance refresh: $REFRESH_ID"
+
+          for i in {1..40}; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+
+            PERCENT=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query 'InstanceRefreshes[0].PercentageComplete' \
+              --output text)
+
+            echo "Refresh status=$STATUS progress=$PERCENT%"
+
+            case "$STATUS" in
+              Successful)
+                echo "Instance refresh completed successfully."
+                exit 0
+                ;;
+              Failed|Cancelled|RollbackFailed|RollbackSuccessful)
+                echo "Instance refresh ended with status: $STATUS"
+                exit 1
+                ;;
+            esac
+
+            sleep 30
+          done
+
+          echo "Timeout waiting for instance refresh."
+          exit 1
+
+      - name: Validate ALB targets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASG_NAME="dev-web-asg"
+          TARGET_GROUP_ARN="arn:aws:elasticloadbalancing:us-east-1:200015573044:targetgroup/dev-web-tg/9931cec8bd30e0a6"
+
+          DESIRED=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names "$ASG_NAME" \
+            --query 'AutoScalingGroups[0].DesiredCapacity' \
+            --output text)
+
+          echo "Desired instances: $DESIRED"
+
+          for i in {1..20}; do
+            HEALTHY=$(aws elbv2 describe-target-health \
+              --target-group-arn "$TARGET_GROUP_ARN" \
+              --query "length(TargetHealthDescriptions[?TargetHealth.State=='healthy'])" \
+              --output text)
+
+            echo "Healthy targets: $HEALTHY/$DESIRED"
+
+            if [ "$HEALTHY" -eq "$DESIRED" ]; then
+              echo "All targets are healthy."
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "Deployment validation failed."
+          exit 1
+
+      - name: Application smoke test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ALB_URL="http://dev-devops-lab-alb-1786480305.us-east-1.elb.amazonaws.com/"
+
+          RESPONSE=$(curl \
+            --fail \
+            --retry 5 \
+            --retry-delay 5 \
+            "$ALB_URL")
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | grep -q "AWS DevOps Lab"
+
+          echo "Application smoke test passed."
