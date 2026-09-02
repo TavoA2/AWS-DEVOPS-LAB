@@ -86,6 +86,21 @@ jobs:
         working-directory: environments/dev
         run: terraform plan -out=tfplan
 
+      - name: Capture current stable launch template version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: stable-version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names dev-web-asg \
+            --query 'AutoScalingGroups[0].LaunchTemplate.Version' \
+            --output text)
+
+          echo "Current stable launch template version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"        
+
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: environments/dev
@@ -192,3 +207,69 @@ jobs:
           echo "$RESPONSE" | grep -q "AWS DevOps Lab"
 
           echo "Application smoke test passed."
+
+      - name: Rollback deployment
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASG_NAME="dev-web-asg"
+          LAUNCH_TEMPLATE_ID="lt-015dea01016b3b170"
+          STABLE_VERSION="${{ steps.stable-version.outputs.version }}"
+
+          echo "Rolling back to launch template version: $STABLE_VERSION"
+
+          # Cancel the failed deployment refresh if it is still running
+          aws autoscaling cancel-instance-refresh \
+            --auto-scaling-group-name "$ASG_NAME" || true
+
+          echo "Restoring ASG to launch template version $STABLE_VERSION"
+
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --launch-template \
+            "LaunchTemplateId=$LAUNCH_TEMPLATE_ID,Version=$STABLE_VERSION"
+
+          echo "Starting rollback instance refresh..."
+
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --strategy Rolling \
+            --preferences MinHealthyPercentage=50,InstanceWarmup=180 \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "Rollback refresh ID: $REFRESH_ID"
+
+          for i in {1..40}; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+
+            PERCENT=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query 'InstanceRefreshes[0].PercentageComplete' \
+              --output text)
+
+            echo "Rollback status=$STATUS progress=$PERCENT%"
+
+            case "$STATUS" in
+              Successful)
+                echo "Rollback completed successfully."
+                exit 0
+                ;;
+              Failed|Cancelled|RollbackFailed)
+                echo "Rollback failed: $STATUS"
+                exit 1
+                ;;
+            esac
+
+            sleep 30
+          done
+
+          echo "Rollback timeout."
+          exit 1
