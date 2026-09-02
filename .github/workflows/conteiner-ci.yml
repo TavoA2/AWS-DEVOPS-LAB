@@ -220,9 +220,41 @@ jobs:
 
           echo "Rolling back to launch template version: $STABLE_VERSION"
 
-          # Cancel the failed deployment refresh if it is still running
+          # Request cancellation of the failed refresh
           aws autoscaling cancel-instance-refresh \
             --auto-scaling-group-name "$ASG_NAME" || true
+
+          # Wait until the previous refresh is actually cancelled
+          echo "Waiting for failed instance refresh to stop..."
+
+          for i in {1..20}; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+
+            echo "Previous refresh status: $STATUS"
+
+            case "$STATUS" in
+              Cancelled|Failed|Successful|RollbackSuccessful|RollbackFailed)
+                echo "Previous instance refresh has stopped."
+                break
+                ;;
+            esac
+
+            sleep 15
+          done
+
+          # Safety check before starting another refresh
+          STATUS=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --query 'InstanceRefreshes[0].Status' \
+            --output text)
+
+          if [ "$STATUS" = "Pending" ] || [ "$STATUS" = "InProgress" ] || [ "$STATUS" = "Cancelling" ] || [ "$STATUS" = "RollbackInProgress" ]; then
+            echo "Previous instance refresh is still active: $STATUS"
+            exit 1
+          fi
 
           echo "Restoring ASG to launch template version $STABLE_VERSION"
 
