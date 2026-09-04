@@ -27,6 +27,9 @@ module "monitoring" {
   environment   = var.environment
   instance_id   = module.compute.instance_id
   cpu_threshold = 20
+
+  alb_arn_suffix          = module.loadbalancing.alb_arn_suffix
+  target_group_arn_suffix = module.loadbalancing.target_group_arn_suffix
 }
 
 module "loadbalancing" {

@@ -17,3 +17,9 @@ variable "web_security_group_id" {
   description = "Security group ID for the web tier"
   type        = string
 }
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN used by the HTTPS listener"
+  type        = string
+  default     = null
+}
