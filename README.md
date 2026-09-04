@@ -536,3 +536,43 @@ Improve
 ```
 
 The environment evolves incrementally as new DevOps and SRE scenarios are introduced.
+
+## Current Progress
+
+The AWS DevOps Lab currently implements an end-to-end DevOps/SRE/DevSecOps workflow using Terraform, AWS, GitHub Actions, Docker, and CloudWatch.
+
+### Completed
+
+- AWS networking: VPC, public/private subnets, Internet Gateway, route tables, and security groups
+- EC2 provisioning with IAM Instance Profile and AWS Systems Manager access
+- Docker-based application deployment
+- Amazon ECR container registry
+- Application Load Balancer and Target Group
+- Auto Scaling Group with CPU target tracking
+- Rolling Instance Refresh deployments
+- GitHub Actions CI/CD
+- GitHub OIDC authentication to AWS
+- Least-privilege IAM policies for CI/CD
+- Terraform remote state in Amazon S3
+- Trivy Infrastructure-as-Code security scanning
+- Trivy container image security scanning
+- Automated ECR image publishing
+- Automated deployment from immutable Git SHA image tags
+- Deployment validation and automated rollback
+- CloudWatch application and infrastructure monitoring
+- Docker logs shipped to CloudWatch Logs
+- ALB 5XX, Target 5XX, unhealthy target, and response-time alarms
+- Availability SLI based on ALB request/error metrics
+- 99.9% availability SLO
+- Error Budget monitoring
+- Error Budget fast-burn alarm
+
+### SRE Reliability Model
+
+The lab currently uses a request-based availability SLI:
+
+```text
+Availability =
+(Total Requests - Target 5XX - ALB 5XX)
+------------------------------------------------ × 100
+                  Total Requests

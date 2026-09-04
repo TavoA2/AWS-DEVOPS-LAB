@@ -21,6 +21,16 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   cidr_ipv4   = "0.0.0.0/0"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "alb_https" {
+  security_group_id = aws_security_group.alb.id
+
+  description = "Allow HTTPS from Internet"
+  from_port   = 443
+  to_port     = 443
+  ip_protocol = "tcp"
+  cidr_ipv4   = "0.0.0.0/0"
+}
+
 resource "aws_vpc_security_group_egress_rule" "alb_to_web" {
   security_group_id = aws_security_group.alb.id
 
@@ -93,6 +103,22 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+resource "aws_lb_listener" "https" {
+  count = var.certificate_arn != null ? 1 : 0
+
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+
+  certificate_arn = var.certificate_arn
+  ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web.arn
+  }
+}
+
 resource "aws_vpc_security_group_ingress_rule" "web_from_alb" {
   security_group_id            = var.web_security_group_id
   referenced_security_group_id = aws_security_group.alb.id
@@ -103,3 +129,4 @@ resource "aws_vpc_security_group_ingress_rule" "web_from_alb" {
 
   description = "Allow HTTP from ALB only"
 }
+

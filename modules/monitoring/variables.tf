@@ -13,3 +13,13 @@ variable "cpu_threshold" {
   type        = number
   default     = 20
 }
+
+variable "alb_arn_suffix" {
+  description = "ARN suffix of the Application Load Balancer"
+  type        = string
+}
+
+variable "target_group_arn_suffix" {
+  description = "ARN suffix of the ALB target group"
+  type        = string
+}

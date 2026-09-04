@@ -18,6 +18,7 @@ resource "aws_launch_template" "web" {
       aws_region      = var.aws_region
       ecr_registry    = var.ecr_registry
       container_image = var.container_image
+      environment     = var.environment
     }),
     "\r\n",
     "\n"
