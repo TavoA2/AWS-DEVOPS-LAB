@@ -7,3 +7,8 @@ variable "environment" {
   description = "Environment name"
   type        = string
 }
+
+variable "aws_region" {
+  description = "AWS region where networking resources are deployed"
+  type        = string
+}

@@ -54,4 +54,45 @@ output "db_security_group_id" {
   value       = aws_security_group.db.id
 }
 
+output "nat_gateway_id" {
+  description = "ID of the NAT Gateway"
+  value       = aws_nat_gateway.main.id
+}
+
+output "nat_public_ip" {
+  description = "Public Elastic IP assigned to the NAT Gateway"
+  value       = aws_eip.nat.public_ip
+}
+
+output "s3_vpc_endpoint_id" {
+  description = "ID of the S3 Gateway VPC Endpoint"
+  value       = aws_vpc_endpoint.s3.id
+}
+
+output "ecr_api_vpc_endpoint_id" {
+  description = "ID of the ECR API Interface Endpoint"
+  value       = aws_vpc_endpoint.ecr_api.id
+}
+
+output "ecr_dkr_vpc_endpoint_id" {
+  description = "ID of the ECR DKR Interface Endpoint"
+  value       = aws_vpc_endpoint.ecr_dkr.id
+}
+
+output "vpc_endpoints_security_group_id" {
+  description = "Security Group used by interface VPC Endpoints"
+  value       = aws_security_group.vpc_endpoints.id
+}
+
+output "ssm_vpc_endpoint_id" {
+  value = aws_vpc_endpoint.ssm.id
+}
+
+output "ssmmessages_vpc_endpoint_id" {
+  value = aws_vpc_endpoint.ssmmessages.id
+}
+
+output "ec2messages_vpc_endpoint_id" {
+  value = aws_vpc_endpoint.ec2messages.id
+}
 

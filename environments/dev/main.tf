@@ -3,6 +3,7 @@ module "networking" {
 
   vpc_cidr    = var.vpc_cidr
   environment = var.environment
+  aws_region  = var.aws_region
 }
 
 module "compute" {
@@ -50,7 +51,7 @@ module "autoscaling" {
 
   instance_type = "t3.micro"
 
-  subnet_ids = module.networking.public_subnet_ids
+  subnet_ids = module.networking.private_subnet_ids
 
   security_group_id = module.networking.web_security_group_id
 

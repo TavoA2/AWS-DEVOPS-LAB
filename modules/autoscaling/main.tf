@@ -4,7 +4,7 @@ resource "aws_launch_template" "web" {
   instance_type = var.instance_type
 
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = false
     security_groups             = [var.security_group_id]
     device_index                = 0
   }
