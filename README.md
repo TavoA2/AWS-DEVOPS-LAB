@@ -576,3 +576,28 @@ Availability =
 (Total Requests - Target 5XX - ALB 5XX)
 ------------------------------------------------ × 100
                   Total Requests
+
+
+### Ticket 28 - Private AWS Service Access
+
+Implemented VPC endpoints for private workloads:
+
+- S3 Gateway Endpoint
+- ECR API Interface Endpoint
+- ECR DKR Interface Endpoint
+- SSM Interface Endpoint
+- SSM Messages Interface Endpoint
+- EC2 Messages Interface Endpoint
+
+Validation:
+- EC2 instances run in private subnets without public IPs.
+- Removed private subnet default route to NAT temporarily.
+- SSM Run Command continued working without NAT.
+- Public Internet access failed as expected.
+- ECR authentication continued working.
+- Docker image pull from private ECR continued working.
+- NAT route was restored after the test.
+
+Result:
+AWS service traffic can remain inside the AWS network while NAT is reserved
+for workloads that actually require Internet access.

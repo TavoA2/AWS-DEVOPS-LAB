@@ -124,6 +124,12 @@ resource "aws_route_table" "private" {
   }
 }
 
+resource "aws_route" "private_internet" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.main.id
+}
+
 resource "aws_route_table_association" "private_a" {
   subnet_id      = aws_subnet.private_a.id
   route_table_id = aws_route_table.private.id
@@ -222,4 +228,186 @@ resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
   ip_protocol = "tcp"
 
   description = "Allow HTTPS outbound traffic"
+}
+
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name        = "${var.environment}-nat-eip"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_a.id
+
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name        = "${var.environment}-nat-gateway"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  name        = "${var.environment}-vpc-endpoints-sg"
+  description = "Security group for VPC interface endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name        = "${var.environment}-vpc-endpoints-sg"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "vpc_endpoints_https_from_web" {
+  security_group_id = aws_security_group.vpc_endpoints.id
+
+  referenced_security_group_id = aws_security_group.web.id
+
+  from_port   = 443
+  to_port     = 443
+  ip_protocol = "tcp"
+
+  description = "Allow HTTPS from private web instances"
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = [
+    aws_route_table.private.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-s3-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-ecr-api-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-ecr-dkr-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-ssm-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-ssmmessages-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-ec2messages-endpoint"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Project     = "aws-devops-lab"
+  }
 }
