@@ -28,3 +28,9 @@ variable "ami_id" {
   description = "AMI ID used by EC2 instances"
   type        = string
 }
+
+variable "create_instance" {
+  description = "Create the legacy standalone EC2 instance"
+  type        = bool
+  default     = true
+}

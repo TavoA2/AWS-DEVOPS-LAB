@@ -56,12 +56,12 @@ output "db_security_group_id" {
 
 output "nat_gateway_id" {
   description = "ID of the NAT Gateway"
-  value       = aws_nat_gateway.main.id
+  value       = one(aws_nat_gateway.main[*].id)
 }
 
 output "nat_public_ip" {
   description = "Public Elastic IP assigned to the NAT Gateway"
-  value       = aws_eip.nat.public_ip
+  value       = one(aws_eip.nat[*].public_ip)
 }
 
 output "s3_vpc_endpoint_id" {
@@ -71,12 +71,12 @@ output "s3_vpc_endpoint_id" {
 
 output "ecr_api_vpc_endpoint_id" {
   description = "ID of the ECR API Interface Endpoint"
-  value       = aws_vpc_endpoint.ecr_api.id
+  value       = one(aws_vpc_endpoint.ecr_api[*].id)
 }
 
 output "ecr_dkr_vpc_endpoint_id" {
   description = "ID of the ECR DKR Interface Endpoint"
-  value       = aws_vpc_endpoint.ecr_dkr.id
+  value       = one(aws_vpc_endpoint.ecr_dkr[*].id)
 }
 
 output "vpc_endpoints_security_group_id" {
@@ -85,14 +85,14 @@ output "vpc_endpoints_security_group_id" {
 }
 
 output "ssm_vpc_endpoint_id" {
-  value = aws_vpc_endpoint.ssm.id
+  value = one(aws_vpc_endpoint.ssm[*].id)
 }
 
 output "ssmmessages_vpc_endpoint_id" {
-  value = aws_vpc_endpoint.ssmmessages.id
+  value = one(aws_vpc_endpoint.ssmmessages[*].id)
 }
 
 output "ec2messages_vpc_endpoint_id" {
-  value = aws_vpc_endpoint.ec2messages.id
+  value = one(aws_vpc_endpoint.ec2messages[*].id)
 }
 

@@ -1,4 +1,6 @@
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  count = var.instance_id != null ? 1 : 0
+  
   alarm_name        = "${var.environment}-ec2-high-cpu"
   alarm_description = "Triggers when EC2 CPU utilization is high"
 
@@ -26,6 +28,8 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "application_unhealthy" {
+  count = var.instance_id != null ? 1 : 0
+  
   alarm_name        = "${var.environment}-application-unhealthy"
   alarm_description = "Triggers when the application health check fails"
 
@@ -82,6 +86,8 @@ resource "aws_cloudwatch_log_group" "nginx_error" {
 # ============================================================
 
 resource "aws_cloudwatch_metric_alarm" "unhealthy_targets" {
+  count = var.enable_alb_alarms ? 1 : 0
+  
   alarm_name        = "${var.environment}-alb-unhealthy-targets"
   alarm_description = "Triggers when the ALB target group has unhealthy targets"
 
@@ -110,6 +116,8 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_targets" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "target_5xx" {
+  count = var.enable_alb_alarms ? 1 : 0
+
   alarm_name        = "${var.environment}-alb-target-5xx"
   alarm_description = "Triggers when ALB targets return HTTP 5XX errors"
 
@@ -138,6 +146,8 @@ resource "aws_cloudwatch_metric_alarm" "target_5xx" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
+  count = var.enable_alb_alarms ? 1 : 0
+
   alarm_name        = "${var.environment}-alb-5xx"
   alarm_description = "Triggers when the Application Load Balancer generates HTTP 5XX errors"
 
@@ -165,6 +175,8 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_response_time" {
+  count = var.enable_alb_alarms ? 1 : 0
+
   alarm_name        = "${var.environment}-alb-high-response-time"
   alarm_description = "Triggers when target response time is high"
 
@@ -197,6 +209,8 @@ resource "aws_cloudwatch_metric_alarm" "high_response_time" {
 # ============================================================
 
 resource "aws_cloudwatch_metric_alarm" "availability_slo" {
+  count = var.enable_alb_alarms ? 1 : 0
+
   alarm_name        = "${var.environment}-availability-slo"
   alarm_description = "Triggers when service availability falls below the 99.9% SLO"
 
@@ -279,6 +293,8 @@ resource "aws_cloudwatch_metric_alarm" "availability_slo" {
 # ============================================================
 
 resource "aws_cloudwatch_metric_alarm" "error_budget_fast_burn" {
+  count = var.enable_alb_alarms ? 1 : 0
+  
   alarm_name        = "${var.environment}-error-budget-fast-burn"
   alarm_description = "Triggers when the 99.9% SLO error budget is burning faster than 10x"
 

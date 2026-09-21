@@ -125,9 +125,11 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route" "private_internet" {
+  count = var.enable_nat_gateway ? 1 : 0
+  
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.main.id
+  nat_gateway_id         = aws_nat_gateway.main[0].id
 }
 
 resource "aws_route_table_association" "private_a" {
@@ -231,8 +233,8 @@ resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
 }
 
 resource "aws_eip" "nat" {
+  count = var.enable_nat_gateway ? 1 : 0
   domain = "vpc"
-
   tags = {
     Name        = "${var.environment}-nat-eip"
     Environment = var.environment
@@ -242,7 +244,9 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
+  count = var.enable_nat_gateway ? 1 : 0
+  
+  allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public_a.id
 
   depends_on = [aws_internet_gateway.main]
@@ -298,6 +302,8 @@ resource "aws_vpc_endpoint" "s3" {
 }
 
 resource "aws_vpc_endpoint" "ecr_api" {
+  count = var.enable_interface_endpoints ? 1 : 0
+
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type   = "Interface"
@@ -321,6 +327,8 @@ resource "aws_vpc_endpoint" "ecr_api" {
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
+count = var.enable_interface_endpoints ? 1 : 0
+
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type   = "Interface"
@@ -344,6 +352,8 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
 }
 
 resource "aws_vpc_endpoint" "ssm" {
+  count = var.enable_interface_endpoints ? 1 : 0
+
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ssm"
   vpc_endpoint_type   = "Interface"
@@ -367,6 +377,8 @@ resource "aws_vpc_endpoint" "ssm" {
 }
 
 resource "aws_vpc_endpoint" "ssmmessages" {
+  count = var.enable_interface_endpoints ? 1 : 0
+  
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
   vpc_endpoint_type   = "Interface"
@@ -390,6 +402,8 @@ resource "aws_vpc_endpoint" "ssmmessages" {
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
+  count = var.enable_interface_endpoints ? 1 : 0
+  
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
   vpc_endpoint_type   = "Interface"
@@ -409,5 +423,31 @@ resource "aws_vpc_endpoint" "ec2messages" {
     Environment = var.environment
     ManagedBy   = "terraform"
     Project     = "aws-devops-lab"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  count = var.enable_interface_endpoints ? 1 : 0
+  
+  vpc_id = aws_vpc.main.id
+
+  service_name = "com.amazonaws.${var.aws_region}.logs"
+
+  vpc_endpoint_type = "Interface"
+
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.vpc_endpoints.id
+  ]
+
+  tags = {
+    Name        = "${var.environment}-logs-endpoint"
+    Environment = var.environment
   }
 }
