@@ -126,7 +126,7 @@ resource "aws_route_table" "private" {
 
 resource "aws_route" "private_internet" {
   count = var.enable_nat_gateway ? 1 : 0
-  
+
   route_table_id         = aws_route_table.private.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.main[0].id
@@ -233,7 +233,7 @@ resource "aws_vpc_security_group_egress_rule" "web_https_outbound" {
 }
 
 resource "aws_eip" "nat" {
-  count = var.enable_nat_gateway ? 1 : 0
+  count  = var.enable_nat_gateway ? 1 : 0
   domain = "vpc"
   tags = {
     Name        = "${var.environment}-nat-eip"
@@ -245,7 +245,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "main" {
   count = var.enable_nat_gateway ? 1 : 0
-  
+
   allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public_a.id
 
@@ -327,7 +327,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
-count = var.enable_interface_endpoints ? 1 : 0
+  count = var.enable_interface_endpoints ? 1 : 0
 
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
@@ -378,7 +378,7 @@ resource "aws_vpc_endpoint" "ssm" {
 
 resource "aws_vpc_endpoint" "ssmmessages" {
   count = var.enable_interface_endpoints ? 1 : 0
-  
+
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
   vpc_endpoint_type   = "Interface"
@@ -403,7 +403,7 @@ resource "aws_vpc_endpoint" "ssmmessages" {
 
 resource "aws_vpc_endpoint" "ec2messages" {
   count = var.enable_interface_endpoints ? 1 : 0
-  
+
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
   vpc_endpoint_type   = "Interface"
@@ -428,7 +428,7 @@ resource "aws_vpc_endpoint" "ec2messages" {
 
 resource "aws_vpc_endpoint" "logs" {
   count = var.enable_interface_endpoints ? 1 : 0
-  
+
   vpc_id = aws_vpc.main.id
 
   service_name = "com.amazonaws.${var.aws_region}.logs"

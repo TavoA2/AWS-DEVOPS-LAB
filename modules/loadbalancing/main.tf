@@ -1,6 +1,6 @@
 resource "aws_security_group" "alb" {
   count = var.enabled ? 1 : 0
-  
+
   name        = "${var.environment}-alb-sg"
   description = "Security group for Application Load Balancer"
   vpc_id      = var.vpc_id
@@ -15,7 +15,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   count = var.enabled ? 1 : 0
-  
+
   security_group_id = aws_security_group.alb[0].id
 
   description = "Allow HTTP from Internet"
@@ -53,7 +53,7 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_web" {
 #trivy:ignore:AWS-0053
 resource "aws_lb" "main" {
   count = var.enabled ? 1 : 0
-  
+
   name               = "${var.environment}-devops-lab-alb"
   internal           = false
   load_balancer_type = "application"
@@ -118,7 +118,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_listener" "https" {
-  count = var.enabled && var.certificate_arn != null ? 1 : 0
+  count             = var.enabled && var.certificate_arn != null ? 1 : 0
   load_balancer_arn = aws_lb.main[0].arn
   port              = 443
   protocol          = "HTTPS"
@@ -134,7 +134,7 @@ resource "aws_lb_listener" "https" {
 
 resource "aws_vpc_security_group_ingress_rule" "web_from_alb" {
   count = var.enabled ? 1 : 0
-  
+
   security_group_id            = var.web_security_group_id
   referenced_security_group_id = aws_security_group.alb[0].id
 
