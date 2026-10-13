@@ -1,6 +1,11 @@
 # Terraform state
 *.tfstate
 *.tfstate.*
+.terraform/
+*.tfplan
+tfplan-*
+crash.log
+crash.*.log
 
 # Terraform working directory
 .terraform/
@@ -10,8 +15,10 @@ tfplan
 *.tfplan
 
 # Terraform variable files that may contain secrets
-*.tfvars
-*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
 
 # Environment / secrets
 .env
@@ -21,3 +28,9 @@ tfplan
 # Crash logs
 crash.log
 crash.*.log
+
+# Credentials
+.env
+.env.*
+*.pem
+*.key

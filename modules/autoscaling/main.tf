@@ -56,17 +56,15 @@ resource "aws_launch_template" "web" {
 resource "aws_autoscaling_group" "web" {
   name = "${var.environment}-web-asg"
 
-  min_size         = 2
-  desired_capacity = 2
-  max_size         = 3
+  min_size         = var.lab_enabled ? 2 : 0
+  desired_capacity = var.lab_enabled ? 2 : 0
+  max_size         = var.lab_enabled ? 3 : 0
 
   default_cooldown = 180
 
   vpc_zone_identifier = var.subnet_ids
 
-  target_group_arns = [
-    var.target_group_arn
-  ]
+  target_group_arns = var.target_group_arn != null ? [var.target_group_arn] : []
 
   health_check_type         = "ELB"
   health_check_grace_period = 300
@@ -105,6 +103,8 @@ resource "aws_autoscaling_group" "web" {
 }
 
 resource "aws_autoscaling_policy" "cpu_target_tracking" {
+  count = var.lab_enabled ? 1 : 0
+
   name                   = "${var.environment}-web-cpu-target"
   autoscaling_group_name = aws_autoscaling_group.web.name
   policy_type            = "TargetTrackingScaling"

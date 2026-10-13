@@ -33,6 +33,8 @@ resource "aws_iam_instance_profile" "ec2_ssm" {
 }
 
 resource "aws_instance" "lab" {
+  count = var.create_instance ? 1 : 0
+
   ami           = var.ami_id
   instance_type = var.instance_type
 

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: default
+data:
+  APP_ENV: "development"
+  LOG_LEVEL: "warning"
+  DB_HOST: "database.internal"
+  DB_PORT: "5432"

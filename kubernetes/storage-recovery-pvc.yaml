@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storage-recovery-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  volumeName: pvc-f2bd3cda-b273-45b3-baae-ac93e915df5e
+  resources:
+    requests:
+      storage: 1Gi
