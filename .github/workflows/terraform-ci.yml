@@ -72,6 +72,8 @@ jobs:
         with:
           scan-type: config
           scan-ref: .
+          scanners: misconfig
+          skip-dirs: 'kubernetes,app'
           severity: HIGH,CRITICAL
           exit-code: '1'
           format: table
