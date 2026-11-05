@@ -12,6 +12,10 @@ spec:
       labels:
         app: api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
       containers:
         - name: api
           image: traefik/whoami:v1.11.0
@@ -22,6 +26,15 @@ spec:
                 name: api-config
             - secretRef:
                 name: api-secret
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
 
 ---
 apiVersion: v1
