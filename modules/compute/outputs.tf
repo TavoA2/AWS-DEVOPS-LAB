@@ -1,16 +1,16 @@
 output "instance_id" {
-  description = "EC2 instance ID"
-  value       = aws_instance.lab.id
+  description = "ID of the standalone EC2 instance"
+  value       = one(aws_instance.lab[*].id)
 }
 
 output "private_ip" {
-  description = "Private IP address"
-  value       = aws_instance.lab.private_ip
+  description = "Private IP of the standalone EC2 instance"
+  value       = one(aws_instance.lab[*].private_ip)
 }
 
 output "public_ip" {
-  description = "Public IP address"
-  value       = aws_instance.lab.public_ip
+  description = "Public IP of the standalone EC2 instance"
+  value       = one(aws_instance.lab[*].public_ip)
 }
 
 output "ami_id" {

@@ -29,11 +29,6 @@ variable "iam_instance_profile_name" {
   type        = string
 }
 
-variable "target_group_arn" {
-  description = "ALB target group ARN"
-  type        = string
-}
-
 variable "aws_region" {
   description = "AWS region used to authenticate with ECR"
   type        = string
@@ -47,4 +42,17 @@ variable "ecr_registry" {
 variable "container_image" {
   description = "Full ECR image URI including immutable tag"
   type        = string
+}
+
+variable "lab_enabled" {
+  description = "Enable EC2 capacity and CPU autoscaling"
+  type        = bool
+  default     = true
+}
+
+variable "target_group_arn" {
+  description = "Optional ALB target group ARN"
+  type        = string
+  default     = null
+  nullable    = true
 }

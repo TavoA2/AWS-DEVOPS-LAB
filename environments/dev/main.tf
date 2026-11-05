@@ -4,12 +4,17 @@ module "networking" {
   vpc_cidr    = var.vpc_cidr
   environment = var.environment
   aws_region  = var.aws_region
+
+  enable_nat_gateway         = var.enable_nat_gateway
+  enable_interface_endpoints = var.enable_interface_endpoints
 }
 
 module "compute" {
   source = "../../modules/compute"
 
   environment = var.environment
+
+  create_instance = false
 
   ecr_repository_arn = module.ecr.repository_arn
 
@@ -25,6 +30,8 @@ module "compute" {
 module "monitoring" {
   source = "../../modules/monitoring"
 
+  enable_alb_alarms = var.enable_loadbalancer
+
   environment   = var.environment
   instance_id   = module.compute.instance_id
   cpu_threshold = 20
@@ -34,7 +41,10 @@ module "monitoring" {
 }
 
 module "loadbalancing" {
-  source                = "../../modules/loadbalancing"
+  source = "../../modules/loadbalancing"
+
+  enabled = var.enable_loadbalancer
+
   web_security_group_id = module.networking.web_security_group_id
 
   environment       = "dev"
@@ -43,12 +53,13 @@ module "loadbalancing" {
 }
 
 module "autoscaling" {
+  lab_enabled = var.enable_autoscaling
+
   source = "../../modules/autoscaling"
 
   environment = var.environment
 
-  ami_id = var.ami_id
-
+  ami_id        = var.autoscaling_ami_id
   instance_type = "t3.micro"
 
   subnet_ids = module.networking.private_subnet_ids
@@ -69,3 +80,4 @@ module "ecr" {
 
   environment = var.environment
 }
+

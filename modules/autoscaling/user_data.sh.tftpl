@@ -2,9 +2,6 @@
 
 set -e
 
-dnf install -y docker
-
-systemctl enable docker
 systemctl start docker
 
 aws ecr get-login-password --region ${aws_region} | \

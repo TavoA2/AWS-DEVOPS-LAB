@@ -23,3 +23,9 @@ variable "certificate_arn" {
   type        = string
   default     = null
 }
+
+variable "enabled" {
+  description = "Enable ALB and its associated resources"
+  type        = bool
+  default     = true
+}

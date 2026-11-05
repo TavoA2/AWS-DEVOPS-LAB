@@ -23,7 +23,43 @@ variable "container_image_tag" {
 }
 
 variable "ami_id" {
-  description = "Pinned Amazon Linux AMI for the dev environment"
+  description = "Pinned Amazon Linux AMI for the standalone dev EC2"
   type        = string
   default     = "ami-02b3d83d84b07786d"
+}
+
+variable "autoscaling_ami_id" {
+  description = "AMI used by the web Auto Scaling Group"
+  type        = string
+  default     = "ami-006d891a2505139b9"
+}
+
+variable "lab_enabled" {
+  description = "Enable the temporary AWS lab infrastructure"
+  type        = bool
+  default     = true
+}
+
+variable "enable_autoscaling" {
+  description = "Enable Auto Scaling Group EC2 capacity"
+  type        = bool
+  default     = false
+}
+
+variable "enable_loadbalancer" {
+  description = "Enable Application Load Balancer and related resources"
+  type        = bool
+  default     = false
+}
+
+variable "enable_nat_gateway" {
+  description = "Create NAT Gateway, Elastic IP and private default route"
+  type        = bool
+  default     = false
+}
+
+variable "enable_interface_endpoints" {
+  description = "Create paid VPC Interface Endpoints"
+  type        = bool
+  default     = false
 }
