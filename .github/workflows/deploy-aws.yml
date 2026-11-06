@@ -1,0 +1,155 @@
+name: AWS Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Publish to ECR only, or deploy to the running dev lab
+        required: true
+        type: choice
+        default: image-only
+        options:
+          - image-only
+          - deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aws-deployment-dev
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  AWS_PAGER: ''
+  ECR_REPOSITORY: dev-aws-devops-lab-web
+  IMAGE: aws-devops-lab-web:${{ github.sha }}
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image_uri: ${{ steps.ecr.outputs.image_uri }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::200015573044:role/github-actions-terraform-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
+
+      - name: Pull the published image or build a new one
+        id: candidate
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          set -euo pipefail
+          uri="$REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA"
+          mutability=$(aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" \
+            --query 'repositories[0].imageTagMutability' --output text)
+          if [[ "$mutability" != IMMUTABLE ]]; then
+            echo 'Deployment requires immutable ECR tags.' >&2
+            exit 1
+          fi
+          if digest=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
+              --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' \
+              --output text 2>ecr-error); then
+            [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+            source_image="$REGISTRY/$ECR_REPOSITORY@$digest"
+            docker pull "$source_image"
+            docker tag "$source_image" "$IMAGE"
+          elif grep -Fq '(ImageNotFoundException)' ecr-error; then
+            docker build --tag "$IMAGE" ./app
+            digest=''
+          else
+            cat ecr-error >&2
+            exit 1
+          fi
+          echo "uri=$uri" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Scan the selected image
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        env:
+          AWS_ACCESS_KEY_ID: ''
+          AWS_SECRET_ACCESS_KEY: ''
+          AWS_SESSION_TOKEN: ''
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ''
+          ACTIONS_ID_TOKEN_REQUEST_URL: ''
+        with:
+          image-ref: ${{ env.IMAGE }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Publish or confirm the scanned image
+        id: ecr
+        env:
+          IMAGE_URI: ${{ steps.candidate.outputs.uri }}
+          EXISTING_DIGEST: ${{ steps.candidate.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$EXISTING_DIGEST" ]]; then
+            docker tag "$IMAGE" "$IMAGE_URI"
+            docker push "$IMAGE_URI"
+          else
+            digest=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
+              --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' --output text)
+            [[ "$digest" == "$EXISTING_DIGEST" ]]
+          fi
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    if: inputs.mode == 'deploy'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ASG_NAME: dev-web-asg
+      IMAGE_URI: ${{ needs.publish.outputs.image_uri }}
+      TF_VAR_container_image_tag: ${{ github.sha }}
+      TF_IN_AUTOMATION: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::200015573044:role/github-actions-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Check the running lab and capture a stable version
+        run: bash .github/scripts/deploy-aws.sh preflight
+
+      - name: Plan and apply the launch template update
+        run: bash .github/scripts/deploy-aws.sh template
+
+      - name: Start and record this deployment's instance refresh
+        id: refresh
+        run: bash .github/scripts/deploy-aws.sh start
+
+      - name: Wait for the refresh and validate the application
+        run: bash .github/scripts/deploy-aws.sh verify
+
+      - name: Restore the verified stable version
+        if: failure() && steps.refresh.outputs.started == 'true'
+        run: bash .github/scripts/deploy-aws.sh rollback
