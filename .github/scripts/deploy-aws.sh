@@ -203,8 +203,17 @@ case "$1" in
     status=$(refresh_status "$refresh_id")
     case "$status" in
       Pending|InProgress|Baking)
-        aws autoscaling cancel-instance-refresh --auto-scaling-group-name "$ASG_NAME" \
-          --query 'InstanceRefreshId' --output text | grep -Fx "$refresh_id"
+        if cancelled_id=$(aws autoscaling cancel-instance-refresh --auto-scaling-group-name "$ASG_NAME" \
+            --query 'InstanceRefreshId' --output text 2>"$DEPLOY_STATE/cancel-error"); then
+          [[ "$cancelled_id" == "$refresh_id" ]]
+        elif grep -Fq '(ActiveInstanceRefreshNotFound)' "$DEPLOY_STATE/cancel-error"; then
+          # The refresh may have finished after the status check.
+          terminal "$(refresh_status "$refresh_id")"
+          [[ "$(latest_refresh)" == "$refresh_id" ]]
+        else
+          cat "$DEPLOY_STATE/cancel-error" >&2
+          exit 1
+        fi
         ;;
       Cancelling) ;;
       *) terminal "$status" ;;

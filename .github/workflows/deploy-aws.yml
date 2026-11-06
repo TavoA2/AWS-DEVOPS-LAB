@@ -26,40 +26,8 @@ env:
   IMAGE: aws-devops-lab-web:${{ github.sha }}
 
 jobs:
-  build:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Build Docker image
-        run: docker build --tag "$IMAGE" ./app
-
-      - name: Scan Docker image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
-        with:
-          image-ref: ${{ env.IMAGE }}
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: '1'
-          ignore-unfixed: true
-
-      - name: Save scanned image
-        run: docker save --output image.tar "$IMAGE"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: scanned-image
-          path: image.tar
-          if-no-files-found: error
-          retention-days: 7
-          overwrite: true
-          compression-level: 0
-
   publish:
-    needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,11 +35,9 @@ jobs:
     outputs:
       image_uri: ${{ steps.ecr.outputs.image_uri }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: scanned-image
-
-      - run: docker load --input image.tar
+          persist-credentials: false
 
       - uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -81,29 +47,67 @@ jobs:
       - uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
 
-      - name: Publish scanned image to existing ECR repository
-        id: ecr
+      - name: Pull the published image or build a new one
+        id: candidate
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           set -euo pipefail
           uri="$REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA"
-          if aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
-              --image-ids imageTag="$GITHUB_SHA" >/dev/null 2>ecr-error; then
-            docker pull "$uri"
-            test "$(docker image inspect --format '{{.Id}}' "$uri")" = \
-              "$(docker image inspect --format '{{.Id}}' "$IMAGE")" || {
-                echo 'The immutable ECR tag contains a different image than the scanned build.' >&2
-                exit 1
-              }
-          elif grep -Fq 'ImageNotFoundException' ecr-error; then
-            docker tag "$IMAGE" "$uri"
-            docker push "$uri"
+          mutability=$(aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" \
+            --query 'repositories[0].imageTagMutability' --output text)
+          if [[ "$mutability" != IMMUTABLE ]]; then
+            echo 'Deployment requires immutable ECR tags.' >&2
+            exit 1
+          fi
+          if digest=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
+              --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' \
+              --output text 2>ecr-error); then
+            [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+            source_image="$REGISTRY/$ECR_REPOSITORY@$digest"
+            docker pull "$source_image"
+            docker tag "$source_image" "$IMAGE"
+          elif grep -Fq '(ImageNotFoundException)' ecr-error; then
+            docker build --tag "$IMAGE" ./app
+            digest=''
           else
             cat ecr-error >&2
             exit 1
           fi
-          echo "image_uri=$uri" >> "$GITHUB_OUTPUT"
+          echo "uri=$uri" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Scan the selected image
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        env:
+          AWS_ACCESS_KEY_ID: ''
+          AWS_SECRET_ACCESS_KEY: ''
+          AWS_SESSION_TOKEN: ''
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ''
+          ACTIONS_ID_TOKEN_REQUEST_URL: ''
+        with:
+          image-ref: ${{ env.IMAGE }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Publish or confirm the scanned image
+        id: ecr
+        env:
+          IMAGE_URI: ${{ steps.candidate.outputs.uri }}
+          EXISTING_DIGEST: ${{ steps.candidate.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$EXISTING_DIGEST" ]]; then
+            docker tag "$IMAGE" "$IMAGE_URI"
+            docker push "$IMAGE_URI"
+          else
+            digest=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
+              --image-ids imageTag="$GITHUB_SHA" --query 'imageDetails[0].imageDigest' --output text)
+            [[ "$digest" == "$EXISTING_DIGEST" ]]
+          fi
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
 
   deploy:
     if: inputs.mode == 'deploy'
