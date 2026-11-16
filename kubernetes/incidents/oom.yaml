@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-hog
+  namespace: oom-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memory-hog
+  template:
+    metadata:
+      labels:
+        app: memory-hog
+    spec:
+      containers:
+        - name: memory-hog
+          image: python:3.12-alpine
+          command:
+            - python
+            - -u
+            - -c
+            - |
+              import time
+              print("Starting memory allocation...", flush=True)
+              data = bytearray(128 * 1024 * 1024)
+              for i in range(0, len(data), 4096):
+                  data[i] = 1
+              print("Allocation completed", flush=True)
+              time.sleep(300)
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "25m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
