@@ -15,6 +15,10 @@ resource "aws_vpc" "main" {
   }
 }
 
+#trivy:ignore:AVD-AWS-0164
+# Temporary EKS lab exception: public IP assignment provides outbound
+# internet access for worker nodes without a NAT Gateway.
+# Production worker nodes should use private subnets.
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -30,6 +34,10 @@ resource "aws_subnet" "public_a" {
   }
 }
 
+#trivy:ignore:AVD-AWS-0164
+# Temporary EKS lab exception: public IP assignment provides outbound
+# internet access for worker nodes without a NAT Gateway.
+# Production worker nodes should use private subnets.
 resource "aws_subnet" "public_b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.2.0/24"
