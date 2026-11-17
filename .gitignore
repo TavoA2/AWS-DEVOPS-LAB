@@ -1,3 +1,11 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
 # Terraform state
 *.tfstate
 *.tfstate.*
@@ -34,3 +42,25 @@ crash.*.log
 .env.*
 *.pem
 *.key
+
+# Kubernetes secrets (local manifests)
+kubernetes/*secret.yaml
+kubernetes/*secret.yml
+kubernetes/**/*secret.yaml
+kubernetes/**/*secret.yml
+
+# Kubernetes credentials
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# Local and temporary files
+*.log
+*.tmp
+*.bak
+
+# Credentials and local configuration
+.env
+.env.*
+*.tfvars
+*.tfvars.json
