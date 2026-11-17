@@ -15,11 +15,18 @@ resource "aws_vpc" "main" {
   }
 }
 
+#trivy:ignore:AVD-AWS-0164
+#trivy:ignore:AWS-0164
+# Temporary EKS lab exception: public IP assignment provides outbound
+# internet access for worker nodes without a NAT Gateway.
+# Production worker nodes should use private subnets.
 resource "aws_subnet" "public_a" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = false
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  # Temporary lab exception: public IPs provide worker node internet access.
+  #trivy:ignore:AWS-0164
+  map_public_ip_on_launch = true
 
   tags = {
     Name        = "${var.environment}-public-subnet-a"
@@ -30,11 +37,18 @@ resource "aws_subnet" "public_a" {
   }
 }
 
+#trivy:ignore:AVD-AWS-0164
+#trivy:ignore:AWS-0164
+# Temporary EKS lab exception: public IP assignment provides outbound
+# internet access for worker nodes without a NAT Gateway.
+# Production worker nodes should use private subnets.
 resource "aws_subnet" "public_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = data.aws_availability_zones.available.names[1]
-  map_public_ip_on_launch = false
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = data.aws_availability_zones.available.names[1]
+  # Temporary lab exception: public IPs provide worker node internet access.
+  #trivy:ignore:AWS-0164
+  map_public_ip_on_launch = true
 
   tags = {
     Name        = "${var.environment}-public-subnet-b"
