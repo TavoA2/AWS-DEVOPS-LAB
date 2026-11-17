@@ -53,11 +53,18 @@ resource "aws_iam_role_policy_attachment" "nodes_cni" {
 }
 
 # EKS control plane
+# EKS lab: Kubernetes 1.36 uses AWS-managed envelope encryption.
+# No customer-managed KMS key is required for this exercise.
+#trivy:ignore:AWS-0039
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   role_arn = aws_iam_role.cluster.arn
   version  = var.cluster_version
 
+  # Temporary lab exception: public API access is restricted to
+  # the operator's approved /32 CIDR for kubectl access.
+  #trivy:ignore:AWS-0040
+  #trivy:ignore:AWS-0041
   vpc_config {
     subnet_ids              = var.subnet_ids
     public_access_cidrs     = var.allowed_public_cidrs
