@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-api
+  namespace: incident-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broken-api
+  template:
+    metadata:
+      labels:
+        app: broken-api
+    spec:
+      containers:
+        - name: api
+          image: busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting API service..."
+
+              if [ -z "$DATABASE_URL" ]; then
+                echo "ERROR: Required environment variable DATABASE_URL is missing"
+                exit 1
+              fi
+
+              echo "DATABASE_URL configured successfully"
+              echo "Application started"
+
+              while true; do
+                sleep 30
+              done
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://localhost:5432/incident_lab"
